@@ -1,10 +1,26 @@
 {
-  "post_lines": [
-    { "key": "brand_name", "text": "{brand_name}" },
-    { "key": "product_name", "text": "「{product_name}」を使ってみました✨" },
-    { "key": "texture", "text": "🫧 テクスチャ：{texture}" },
-    { "key": "scent", "text": "🌸 香り：{scent}" },
-    { "key": "usability", "text": "👍 使いやすさ：{usability}" },
-    { "key": "favorite_points", "text": "💖 お気に入りポイント：{favorite_points}" }
-  ]
+  "sns": {
+    "Instagram": {
+      "max_length": 2200,
+      "post_lines": [
+        { "key": "brand_name", "text": "{brand_name}" },
+        { "key": "product_name", "text": "「{product_name}」を使ってみました✨" },
+        { "key": "texture", "text": "🫧 テクスチャ：{texture}" },
+        { "key": "scent", "text": "🌸 香り：{scent}" },
+        { "key": "usability", "text": "👍 使いやすさ：{usability}" },
+        { "key": "favorite_points", "text": "💖 お気に入りポイント：{favorite_points}" }
+      ]
+    },
+    "X": {
+      "max_length": 140,
+      "post_lines": [
+        { "key": "product_name", "text": "「{product_name}」レビュー✨" },
+        { "key": "brand_name", "text": "（{brand_name}）" },
+        { "key": "texture", "text": "テクスチャ：{texture}" },
+        { "key": "scent", "text": "香り：{scent}" },
+        { "key": "usability", "text": "使いやすさ：{usability}" },
+        { "key": "favorite_points", "text": "推しポイント：{favorite_points}" }
+      ]
+    }
+  }
 }
