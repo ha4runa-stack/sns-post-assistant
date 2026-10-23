@@ -1,0 +1,21 @@
+# Streamlit の見た目の設定ファイル
+# ベージュとブラウンを基調にした、落ち着いたナチュラルなデザイン
+
+[theme]
+# 明るいテーマをもとにする
+base = "light"
+# ボタンやチェックボックスなどの色（ブラウン）
+primaryColor = "#8B6544"
+# ページの背景色（淡いクリーム）
+backgroundColor = "#FAF6EE"
+# 入力欄などの背景色（淡いベージュ）
+secondaryBackgroundColor = "#F3ECE0"
+# 文字の色（こげ茶）
+textColor = "#4A3B30"
+# 枠線の色（薄いベージュ）
+borderColor = "#E3D5C3"
+# 赤色を、デザインに合う落ち着いた赤茶にする（期限切れの表示などで使う）
+redColor = "#B5524A"
+redTextColor = "#B5524A"
+# フォント（Google Fonts の Zen Maru Gothic を読み込む）
+font = "'Zen Maru Gothic':https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;500;700&display=swap"
