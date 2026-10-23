@@ -10,21 +10,23 @@ CATEGORIES = ["美容液", "化粧水", "クリーム", "パック", "コスメ"
 TEMPLATES_PATH = Path(__file__).parent / "templates.json"
 HASHTAGS_PATH = Path(__file__).parent / "hashtags.json"
 
+# 見出しの見た目（CSS という、Web ページの見た目を決める書き方）
+# 色やフォントなど全体のデザインは .streamlit/config.toml で設定している
+CUSTOM_CSS = """
+<style>
+/* 見出しを濃いブラウンにする */
+h1, h2, h3 {
+    color: #5C3D2E !important;
+}
+</style>
+"""
+
 
 def load_json(path):
     """JSONファイルを読み込んで、中身を辞書（「名前: 値」の組の集まり）として返す"""
     # encoding="utf-8" を付けないと、Windows では日本語が文字化けすることがある
     with open(path, encoding="utf-8") as file:
         return json.load(file)
-
-
-def get_hashtags(hashtags, category):
-    """カテゴリに合ったハッシュタグ候補のリストを返す
-
-    「その他」など、categories に登録されていないカテゴリは、共通のタグだけになる
-    """
-    category_tags = hashtags["categories"].get(category, [])
-    return category_tags + hashtags["共通"]
 
 
 def create_post(post_lines, inputs):
@@ -45,7 +47,43 @@ def create_post(post_lines, inputs):
     return "\n".join(lines)
 
 
+def get_hashtags(hashtags, category):
+    """カテゴリに合ったハッシュタグ候補のリストを返す
+
+    「その他」など、categories に登録されていないカテゴリは、共通のタグだけになる
+    """
+    category_tags = hashtags["categories"].get(category, [])
+    return category_tags + hashtags["共通"]
+
+
+# unsafe_allow_html=True で、CSS を画面に反映できるようにする
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+
 st.title("SNS投稿文作成アシスタント")
+
+# ---- JSONファイルの読み込み ----
+# SNSの一覧を画面に出すため、画面を開いたときに読み込む
+# st.stop() は、そこでプログラムの実行を止める命令（読み込めないと先に進めないため）
+try:
+    templates = load_json(TEMPLATES_PATH)
+    hashtags = load_json(HASHTAGS_PATH)
+    sns_names = list(templates["sns"].keys())
+except FileNotFoundError as error:
+    # error.filename に、見つからなかったファイルの場所が入っている
+    st.error(f"ファイルが見つかりません：{error.filename}　app.py と同じフォルダにあるか確認してください。")
+    st.stop()
+except json.JSONDecodeError as error:
+    # error.lineno に、誤りが見つかった行の番号が入っている
+    st.error(f"templates.json か hashtags.json の書き方に誤りがあります（{error.lineno}行目付近）。カンマ（,）や {{ }} の閉じ忘れがないか確認してください。")
+    st.stop()
+except KeyError as error:
+    st.error(f"templates.json の項目名に誤りがあります（{error}）。綴りを確認してください。")
+    st.stop()
+
+# ---- 投稿先のSNSの選択 ----
+st.header("投稿先のSNS")
+# horizontal=True で選択肢を横に並べる。見出しがあるので、ラベルは隠す
+sns_name = st.radio("投稿先のSNS", sns_names, horizontal=True, label_visibility="collapsed")
 
 # ---- 商品情報の入力 ----
 st.header("商品情報")
@@ -66,47 +104,52 @@ favorite_points = st.text_area("お気に入りポイント・商品の特徴").
 
 # ---- 作成ボタン ----
 if st.button("投稿文を作成"):
-    # 前に作った投稿文を消しておく（空欄やエラーのときに、古い投稿文が残らないようにする）
-    st.session_state.pop("edited_post", None)
-    st.session_state.pop("hashtags", None)
+    # 前に作った投稿文などを消しておく（空欄やエラーのときに、古い内容が残らないようにする）
+    for key in ["edited_post", "hashtags", "sns_name", "max_length"]:
+        st.session_state.pop(key, None)
 
     if product_name == "":
         # 商品名が空欄のときは注意メッセージを出して、先に進まない
         st.warning("商品名を入力してください。")
     else:
+        inputs = {
+            "product_name": product_name,
+            "brand_name": brand_name,
+            "texture": texture,
+            "scent": scent,
+            "usability": usability,
+            "favorite_points": favorite_points,
+        }
         try:
-            templates = load_json(TEMPLATES_PATH)
-            hashtags = load_json(HASHTAGS_PATH)
-            inputs = {
-                "product_name": product_name,
-                "brand_name": brand_name,
-                "texture": texture,
-                "scent": scent,
-                "usability": usability,
-                "favorite_points": favorite_points,
-            }
-            post = create_post(templates["post_lines"], inputs)
+            # 選んだSNSのテンプレートを取り出す
+            sns_template = templates["sns"][sns_name]
+            post = create_post(sns_template["post_lines"], inputs)
+            max_length = sns_template["max_length"]
             hashtag_list = get_hashtags(hashtags, category)
-        except FileNotFoundError as error:
-            # error.filename に、見つからなかったファイルの場所が入っている
-            st.error(f"ファイルが見つかりません：{error.filename}　app.py と同じフォルダにあるか確認してください。")
-        except json.JSONDecodeError as error:
-            # error.lineno に、誤りが見つかった行の番号が入っている
-            st.error(f"templates.json か hashtags.json の書き方に誤りがあります（{error.lineno}行目付近）。カンマ（,）や {{ }} の閉じ忘れがないか確認してください。")
         except KeyError as error:
             st.error(f"templates.json か hashtags.json の項目名に誤りがあります（{error}）。綴りを確認してください。")
         else:
-            # session_state（画面を操作しても消えない保管場所）に投稿文を入れる
+            # session_state（画面を操作しても消えない保管場所）に投稿文などを入れる
             # key が "edited_post" の入力欄に、この文章が表示される
             st.session_state["edited_post"] = post
             st.session_state["hashtags"] = hashtag_list
+            st.session_state["sns_name"] = sns_name
+            st.session_state["max_length"] = max_length
 
 # ---- 投稿文の編集とコピー ----
 # 投稿文が作られているときだけ表示する
 if "edited_post" in st.session_state:
-    st.subheader("作成した投稿文")
+    st.subheader(f"作成した投稿文（{st.session_state['sns_name']}用）")
     # key を指定すると、入力欄の内容が st.session_state["edited_post"] に保存される
     edited_post = st.text_area("自由に編集できます", key="edited_post", height=250)
+
+    # 文字数の表示（len() は文字の数を数える命令）
+    post_length = len(edited_post)
+    max_length = st.session_state["max_length"]
+    if post_length > max_length:
+        st.warning(f"{post_length} / {max_length}文字　上限を{post_length - max_length}文字超えています。")
+    else:
+        st.caption(f"{post_length} / {max_length}文字（文字数は目安です）")
 
     st.subheader("コピー用")
     if edited_post.strip() == "":
