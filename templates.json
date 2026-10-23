@@ -1,0 +1,10 @@
+{
+  "post_lines": [
+    { "key": "brand_name", "text": "{brand_name}" },
+    { "key": "product_name", "text": "「{product_name}」を使ってみました✨" },
+    { "key": "texture", "text": "🫧 テクスチャ：{texture}" },
+    { "key": "scent", "text": "🌸 香り：{scent}" },
+    { "key": "usability", "text": "👍 使いやすさ：{usability}" },
+    { "key": "favorite_points", "text": "💖 お気に入りポイント：{favorite_points}" }
+  ]
+}
